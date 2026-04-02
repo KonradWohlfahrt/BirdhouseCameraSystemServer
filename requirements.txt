@@ -1,0 +1,5 @@
+flask
+requests
+zipstream-new
+gunicorn
+gevent

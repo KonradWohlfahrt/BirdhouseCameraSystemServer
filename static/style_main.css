@@ -1,0 +1,40 @@
+/* --- STORAGE INDICATOR --- */
+.storage-container {
+    display: flex;
+    flex-direction: column;
+    width: 250px;
+}
+.storage-bar {
+    height: 14px;
+    background: var(--storage-bg);
+    border-radius: 8px;
+    overflow: hidden;
+    margin-top: 5px;
+}
+.storage-fill {
+    height: 100%;
+    width: 0%;
+    background: var(--primary);
+    transition: width 0.4s ease, background 0.3s ease;
+}
+
+/* Device Grid */
+.device-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 20px;
+}
+.device-card {
+    background: var(--card-bg);
+    border-radius: var(--border-radius);
+    padding: 20px;
+    box-shadow: var(--shadow);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    transition: all 0.4s ease;
+}
+.device-card:hover {
+    transform: scale(1.1);
+}

@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Device</title>
+<link rel="shortcut icon" href="{{ url_for('static', filename='favicon_128x128.ico') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='style_device.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='style_notification.css') }}">
+<script defer src="{{ url_for('static', filename='app_utils.js') }}"></script>
+<script defer src="{{ url_for('static', filename='app_notification.js') }}"></script>
+<script defer src="{{ url_for('static', filename='app_images.js') }}"></script>
+<script defer src="{{ url_for('static', filename='app_settings_modal.js') }}"></script>
+<script defer src="{{ url_for('static', filename='app_device.js') }}"></script>
+</head>
+
+<body>
+    <!-- HEADER -->
+    <header class="device-header">
+        <div class="left-header">
+            <button class="btn" onclick="goBack()">Back</button>
+            <h1 id="deviceName"></h1>
+            <div id="deviceStatus" class="device-status"></div>
+            <span id="deviceId"></span>
+            <span id="deviceIp"></span>
+            <span id="deviceLastSeen"></span>
+        </div>
+
+        <div class="right-header">
+            <button class="btn primary" onclick="openStreamModal()">Open Stream</button>
+            <button class="btn" onclick="openLogModal()">View Logs</button>
+            <!-- <button class="btn" onclick="openGraph()">Temperature Graph</button> -->
+            <div class="temperature-badge" id="temperatureBadge"></div>
+        </div>
+    </header>
+
+    <!-- MAIN CONTENT -->
+    <main>
+        <!--
+        <div class="input-row small">
+            <label>From</label>
+            <input type="date" id="fromDate">
+            <label>To</label>
+            <input type="date" id="toDate">
+            <button class="btn" onclick="">Search</button>
+        </div>
+        -->
+        
+        <!-- IMAGE GRID -->
+        <div>
+            <div class="pagination">
+                <button class="btn" onclick="pageDown()">Previous</button>
+                <button class="btn" id="selectPageBtn" onclick="selectPage()">Page 1 of 1</button>
+                <button class="btn" onclick="pageUp()">Next</button>
+            </div>
+            <br>
+            <div class="section-title">Captures</div>
+            <div class="image-grid" id="imageGrid"></div>
+        </div>
+    </main>
+
+    <!-- DEVICE SETTINGS MODAL -->
+    <button class="settings-btn" onclick="openSettings()">⚙️ Settings</button>
+    <div class="modal" id="settingsModal">
+        <div class="settings-content">
+            <!-- HEADER -->
+            <div class="settings-header">
+                <h2>⚙️ Device Settings</h2>
+                <span class="modal-close-icon" onclick="closeSettingsModal()">✖</span>
+            </div>
+
+            <!-- DOWNLOAD -->
+            <div class="settings-section">
+                <h3>Download</h3>
+                <div class="button-group">
+                    <a class="btn" style="text-decoration-line: none;" id="downloadAll">Download All Data</a>
+                </div>
+                <div class="button-group">
+                    <a class="btn" style="text-decoration-line: none;" id="downloadImages">Download Images</a>
+                    <a class="btn" style="text-decoration-line: none;" id="downloadTemperatures">Download Temperatures</a>
+                    <a class="btn" style="text-decoration-line: none;" id="downloadLog">Download Logs</a>
+                </div>
+            </div>
+
+            <!-- GENERAL -->
+            <div class="settings-section">
+                <h3>General</h3>
+
+                <!-- DEVICE NAME -->
+                <div class="input-row small">
+                    <div class="settings-field">
+                        <label>Device name</label>
+                        <input type="text" id="deviceNameInput" placeholder="Enter name..." value="">
+                    </div>
+                </div>
+
+                <!-- CHECKBOXES -->
+                <div class="input-row">
+                    <div class="settings-field">
+                        <input type="checkbox" id="enableMovementWakeup">
+                        <label>Enable movement wakeup</label>
+                    </div>
+                    <div class="settings-field">
+                        <input type="checkbox" id="enablePictureOnTimer">
+                        <label>Enable picture on timer wakeup</label>
+                    </div>
+                    <div class="settings-field">
+                        <input type="checkbox" id="enableTemperatureRead">
+                        <label>Enable temperature read</label>
+                    </div>
+                </div>
+
+                <!-- OTHER -->
+                <div class="input-row">
+                    <div class="settings-field">
+                        <label>LED Brightness</label>
+                        <input type="range" min="0" max="255" value="255" id="ledBrightness">
+                    </div>
+                    <div class="settings-field">
+                        <label>Deep sleep time</label>
+                        <input type="number" min="10" max="120" value="60" id="deepSleepTime">
+                    </div>
+                </div>
+
+                <button class="btn primary" onclick="saveGeneralSettings()">Apply Changes</button>
+            </div>
+
+            <!-- CAMERA -->
+            <div class="settings-section">
+                <h3>Camera Settings</h3>
+
+                <!-- SNAPSHOT -->
+                <div class="input-row">
+                    <div class="settings-field">
+                        <label>Snapshot Resolution</label>
+                        <select id="snapshotResolution">
+                            <option value="0">96x96</option>
+                            <option value="1">QQVGA 160x120</option>
+                            <option value="2">128x128</option>
+                            <option value="3">QCIF 176x144</option>
+                            <option value="4">HQVGA 240x176</option>
+                            <option value="5">240x240</option>
+                            <option value="6">QVGA 320x240</option>
+                            <option value="7">320x320</option>
+                            <option value="8">CIF 400x296</option>
+                            <option value="9">HVGA 480x320</option>
+                            <option value="10">VGA 640x480</option>
+                            <option value="11">SVGA 800x600</option>
+                            <option value="12">XGA 1024x768</option>
+                            <option value="13">HD 1280x720</option>
+                            <option value="14">SXGA 1280x1024</option>
+                            <option value="15">UXGA 1600x1200</option>
+                            <option value="16">FHD 1920x1080</option>
+                            <option value="17">P HD 720x1280</option>
+                            <option value="18">P 3MP 864x1536</option>
+                            <option value="19">QXGA 2048x1536</option>
+                        </select>
+                    </div>
+                    <div class="settings-field">
+                        <label>Snapshot Quality</label>
+                        <select id="snapshotQuality">
+                            <option value="35">Low</option>
+                            <option value="20">Medium</option>
+                            <option value="10">High</option>
+                            <option value="8">Super High</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- STREAMING -->
+                <div class="input-row">
+                    <div class="settings-field">
+                        <label>Streaming Resolution</label>
+                        <select id="streamingResolution">
+                            <option value="0">96x96</option>
+                            <option value="1">QQVGA 160x120</option>
+                            <option value="2">128x128</option>
+                            <option value="3">QCIF 176x144</option>
+                            <option value="4">HQVGA 240x176</option>
+                            <option value="5">240x240</option>
+                            <option value="6">QVGA 320x240</option>
+                            <option value="7">320x320</option>
+                            <option value="8">CIF 400x296</option>
+                            <option value="9">HVGA 480x320</option>
+                            <option value="10">VGA 640x480</option>
+                            <option value="11">SVGA 800x600</option>
+                            <option value="12">XGA 1024x768</option>
+                            <option value="13">HD 1280x720</option>
+                            <option value="14">SXGA 1280x1024</option>
+                            <option value="15">UXGA 1600x1200</option>
+                            <option value="16">FHD 1920x1080</option>
+                            <option value="17">P HD 720x1280</option>
+                            <option value="18">P 3MP 864x1536</option>
+                            <option value="19">QXGA 2048x1536</option>
+                        </select>
+                    </div>
+                    <div class="settings-field">
+                        <label>Streaming Quality</label>
+                        <select id="streamingQuality">
+                            <option value="35">Low</option>
+                            <option value="20">Medium</option>
+                            <option value="10">High</option>
+                            <option value="8">Super High</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- CONTRAST & BRIGHTNESS -->
+                <div class="input-row">
+                    <div class="settings-field">
+                        <label>Contrast</label>
+                        <input type="range" min="-2" max="2" value="0" id="contrast">
+                    </div>
+                    <div class="settings-field">
+                        <label>Brightness</label>
+                        <input type="range" min="-2" max="2" value="0" id="brightness">
+                    </div>
+                </div>
+                
+                <!-- SATURATION & AUTO EXPOSURE LEVEL -->
+                <div class="input-row">
+                    <div class="settings-field">
+                        <label>Saturation</label>
+                        <input type="range" min="-2" max="2" value="0" id="saturation">
+                    </div>
+                    <div class="settings-field">
+                        <label>Auto exposure level</label>
+                        <input type="range" min="-2" max="2" value="0" id="autoExposureLevel">
+                    </div>
+                </div>
+
+                <!-- GAINCEILING & AWB -->
+                <div class="input-row">
+                    <div class="settings-field">
+                        <label>Gainceiling</label>
+                        <select id="gainceiling">
+                            <option value="0">2X</option>
+                            <option value="1">4X</option>
+                            <option value="2">8X</option>
+                            <option value="3">16X</option>
+                            <option value="4">32X</option>
+                            <option value="5">64X</option>
+                            <option value="6">128X</option>
+                        </select>
+                    </div>
+                    <div class="settings-field">
+                        <input type="checkbox" id="autoWhiteBalance">
+                        <label>Auto white balance</label>
+                    </div>
+                </div>
+
+                <!-- NIGHTMODE & LENS CORRECTION -->
+                <div class="input-row">
+                    <div class="settings-field">
+                        <input type="checkbox" id="nightMode">
+                        <label>Night mode</label>
+                    </div>
+                    <div class="settings-field">
+                        <input type="checkbox" id="lensCorrection">
+                        <label>Lens correction</label>
+                    </div>
+                </div>
+
+                <!-- FLIP IMAGE -->
+                <div class="input-row">
+                    <div class="settings-field">
+                        <input type="checkbox" id="horizontalFlip">
+                        <label>Flip horizontal</label>
+                    </div>
+                    <div class="settings-field">
+                        <input type="checkbox" id="verticalFlip">
+                        <label>Flip vertical</label>
+                    </div>
+                </div>
+
+                <!-- SAVE BUTTONS -->
+                <div class="button-group">
+                    <button class="btn primary" onclick="saveCameraSettings(false)">Apply To Device</button>
+                    <button class="btn primary" onclick="saveCameraSettings(true)">Apply To All Devices</button>
+                </div>
+            </div>
+
+            <!-- FIRMWARE UPDATE -->
+            <div class="settings-section">
+                <h3>Firmware Update</h3>
+                <div class="input-row">
+                    <div class="settings-field small">
+                        <input type="file" id="firmwareFile" accept=".bin">
+                        <button class="btn primary" onclick="uploadFirmware()">Flash Firmware</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DANGER ZONE -->
+            <div class="settings-section danger-zone">
+                <h3>Danger Zone</h3>
+                <span>All device data will be deleted permanently, make sure to backup first!</span>
+                <button class="btn danger" onclick="deleteDeviceData()">Delete Device Data</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- LOG MODAL -->
+    <div class="modal" id="logModal">
+        <div class="log-modal-content">
+            <span class="modal-close-icon" onclick="closeLogModal()">✖</span>
+            <h3>Last 5 Logs:</h3>
+            <div class="log-box" id="logContent">
+            </div>
+        </div>
+    </div>
+
+    <!-- IMAGE PREVIEW MODAL -->
+    <div class="modal" id="imageModal">
+        <div class="image-modal-content">
+            <img id="modalImage" src="" alt="Preview">
+
+            <div class="image-meta">
+                <span id="modalTimestamp"></span>
+                <span id="modalDevice"></span>
+            </div>
+
+            <div class="image-actions">
+                <a class="btn primary" style="text-decoration-line: none;" id="imageDownload">Download</a>
+                <button class="btn danger" id="deleteImageBtn" onclick="deleteCurrentImage()">Delete Image</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- STREAM MODAL -->
+    <div class="modal" id="streamModal">
+        <div class="stream-modal-content">
+            <span class="modal-close-icon" onclick="closeStreamModal()">✖</span>
+            <div class="stream-center">
+                <h3>Live Stream</h3>
+                <div class="stream-viewer">
+                    <img id="streamImage" style="display:none;" />
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- WAIT FOR DEVICE MODAL -->
+    <div class="modal" id="waitDeviceModal">
+        <div class="wait-device-content">
+            <h3>Waiting for device...</h3>
+
+            <div class="spinner"></div>
+
+            <button class="btn danger" id="abortWaitBtn">Cancel</button>
+        </div>
+    </div>
+
+    <!-- NOTIFICATION -->
+    <div id="notificationContainer"></div>
+</body>
+</html>

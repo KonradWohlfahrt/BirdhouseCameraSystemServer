@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Birdhouse Camera System</title>
+<link rel="shortcut icon" href="{{ url_for('static', filename='favicon_128x128.ico') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='style_main.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='style_notification.css') }}">
+<script defer src="{{ url_for('static', filename='app_utils.js') }}"></script>
+<script defer src="{{ url_for('static', filename='app_notification.js') }}"></script>
+<script defer src="{{ url_for('static', filename='app_images.js') }}"></script>
+<script defer src="{{ url_for('static', filename='app_settings_modal.js') }}"></script>
+<script defer src="{{ url_for('static', filename='app_index.js') }}"></script>
+</head>
+
+<body>
+    <!-- HEADER -->
+    <header>
+        <h1>Birdhouse Camera System</h1>
+
+        <div class="storage-container">
+            <span id="storageText"></span>
+            <div class="storage-bar">
+                <div class="storage-fill" id="storageFill"></div>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN CONTENT -->
+    <main>
+        <!-- Latest Captures -->
+        <div>
+            <div class="section-title">Latest Captures</div>
+            <div class="image-grid" id="imageGrid"></div>
+        </div>
+
+        <!-- Devices -->
+        <div>
+            <div class="section-title">Devices</div>
+            <div class="device-grid" id="deviceGrid"></div>
+        </div>
+    </main>
+
+    <!-- SETTINGS -->
+    <button class="settings-btn" onclick="openSettings()">⚙️ Settings</button>
+    <div class="modal" id="settingsModal">
+        <div class="settings-content">
+            <!-- HEADER -->
+            <div class="settings-header">
+                <h2>⚙️ System Settings</h2>
+                <span class="modal-close-icon" onclick="closeSettingsModal()">✖</span>
+            </div>
+
+            <!-- DOWNLOAD -->
+            <div class="settings-section">
+                <h3>Downloads</h3>
+                <div class="button-group">
+                    <a class="btn" style="text-decoration-line: none;" href="/api/download?type=all">Download All Data</a>
+                    <a class="btn" style="text-decoration-line: none;" href="/api/settings">Download Settings</a>
+                </div>
+                <div class="button-group">
+                    <a class="btn" style="text-decoration-line: none;" href="/api/download?type=images">Download Images</a>
+                    <a class="btn" style="text-decoration-line: none;" href="/api/download?type=temperatures">Download Temperatures</a>
+                    <a class="btn" style="text-decoration-line: none;" href="/api/download?type=logs">Download Logs</a>
+                </div>
+            </div>
+
+            <!-- REPLACE SETTINGS -->
+            <div class="settings-section">
+                <h3>Replace Settings</h3>
+                <div class="input-row small">
+                    <input type="file" id="settingsUpload" accept=".json">
+                    <button class="btn primary" onclick="uploadSettings()">Upload</button>
+                </div>
+            </div>
+
+            <!-- DANGER ZONE -->
+            <div class="settings-section danger-zone">
+                <h3>Danger Zone</h3>
+                <span>All data will be deleted permanently, make sure to backup first!</span>
+                <button class="btn danger" onclick="deleteAllData()">Delete All Data</button>
+            </div>
+
+            <!-- VERSION INDICATOR -->
+            <div class="settings-footer">
+                <span id="versionIndicator"></span>
+            </div>
+        </div>
+    </div>
+
+    <!-- IMAGE PREVIEW MODAL -->
+    <div class="modal" id="imageModal">
+        <div class="image-modal-content">
+            <img id="modalImage" src="" alt="Preview">
+
+            <div class="image-meta">
+                <span id="modalTimestamp"></span>
+                <span id="modalDevice"></span>
+            </div>
+
+            <div class="image-actions">
+                <a class="btn primary" style="text-decoration-line: none;" id="imageDownload">Download</a>
+                <button class="btn danger" id="deleteImageBtn" onclick="deleteCurrentImage()">Delete Image</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- NOTIFICATION -->
+    <div id="notificationContainer"></div>
+</body>
+</html>
