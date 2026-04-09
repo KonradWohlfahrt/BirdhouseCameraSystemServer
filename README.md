@@ -8,8 +8,8 @@ This repository contains the Flask-based backend and web interface for the Birdh
 All data is stored locally, ensuring full control and privacy. The system does not rely on cloud services, making it ideal for users who prefer self-hosted solutions.  
 This project was sponsored by [NextPCB](https://www.nextpcb.com/). They offer great quality printed circuit board production at a low price. All the camera node PCBs were fabricated by them, more on that in the blog:  
 
-[ESP32-CAM Repository](https://github.com/KonradWohlfahrt/)  
-[Instructables Guide](https://www.instructables.com/)  
+[ESP32-CAM Repository](https://github.com/KonradWohlfahrt/BirdhouseCameraSystemCameraNode)  
+[Instructables Guide](https://www.instructables.com/Flexible-Birdhouse-Camera-System-for-Multiple-Nest/)  
 
 **Key Features:**  
 
@@ -63,7 +63,7 @@ sudo apt install python3 python3-venv python3-pip git -y
 ### 2. Clone the repository
 
 ```bash
-git clone <repo-url> birdhouse
+git clone https://github.com/KonradWohlfahrt/BirdhouseCameraSystemServer.git birdhouse
 cd birdhouse
 ```
 
