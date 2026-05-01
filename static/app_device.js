@@ -366,11 +366,16 @@ async function uploadFirmware() {
     }
 }
 
-async function deleteDeviceData() {
-    if (!confirm("Are you sure you want to delete all data of this device?")) return;
+async function deleteDeviceData(type) {
+    if (!confirm("Are you sure?")) return;
+
+    var endpoint = `/api/delete-data?device=${deviceID}`;
+    if (type) {
+        endpoint += `&type=${type}`;
+    }
 
     try {
-        const response = await fetch(`/api/delete-data?device=${deviceID}`, {
+        const response = await fetch(endpoint, {
             method: "DELETE"
         });
         if (!response.ok) {
@@ -379,7 +384,9 @@ async function deleteDeviceData() {
         }
         
         showSuccess("Successfully deleted device data!");
-        goBack();
+        if (!type) {
+            goBack();
+        }
     } catch (error) {
         showError(error.toString());
     }
@@ -401,7 +408,7 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
     }
 
-    document.getElementById("downloadAll").href = `/api/download?device=${deviceID}&type=all`;
+    document.getElementById("downloadAll").href = `/api/download?device=${deviceID}`;
     document.getElementById("downloadImages").href = `/api/download?device=${deviceID}&type=images`;
     document.getElementById("downloadTemperatures").href = `/api/download?device=${deviceID}&type=temperatures`;
     document.getElementById("downloadLog").href = `/api/download?device=${deviceID}&type=logs`;

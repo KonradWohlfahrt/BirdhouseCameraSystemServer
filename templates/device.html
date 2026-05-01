@@ -296,7 +296,12 @@
             <div class="settings-section danger-zone">
                 <h3>Danger Zone</h3>
                 <span>All device data will be deleted permanently, make sure to backup first!</span>
-                <button class="btn danger" onclick="deleteDeviceData()">Delete Device Data</button>
+                <div class="button-group">
+                    <button class="btn danger" onclick="deleteDeviceData()">Delete Device Data</button>
+                    <button class="btn danger" onclick="deleteDeviceData('images')">Delete Device Images</button>
+                    <button class="btn danger" onclick="deleteDeviceData('temperatures')">Delete Device Temperatures</button>
+                    <button class="btn danger" onclick="deleteDeviceData('logs')">Delete Device Logs</button>
+                </div>
             </div>
         </div>
     </div>

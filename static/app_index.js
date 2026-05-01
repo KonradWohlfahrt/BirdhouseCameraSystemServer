@@ -139,11 +139,16 @@ async function uploadSettings() {
     }
 }
 
-async function deleteAllData() {
-    if (!confirm("Are you sure you want to delete all data?")) return;
+async function deleteData(type) {
+    if (!confirm("Are you sure?")) return;
+
+    var endpoint = "/api/delete-data";
+    if (type) {
+        endpoint += `?type=${type}`;
+    }
 
     try {
-        const response = await fetch("/api/delete-data", {
+        const response = await fetch(endpoint, {
             method: "DELETE"
         });
         if (!response.ok) {
@@ -151,7 +156,7 @@ async function deleteAllData() {
             throw new Error(json["result"]);
         }
         
-        showSuccess("Successfully deleted all data!");
+        showSuccess("Successfully deleted data!");
         closeSettingsModal();
         refreshPage();
     } catch (error) {

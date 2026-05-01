@@ -148,7 +148,7 @@ The server exposes several endpoints for communication:
 - `/api/version` - GET
 - `/api/download?device=&type=` - GET
 - `/api/settings` - GET, POST
-- `/api/delete-data?device=` - DELETE
+- `/api/delete-data?device=&type=` - DELETE
 
 
 ---

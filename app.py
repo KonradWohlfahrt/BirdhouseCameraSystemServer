@@ -29,20 +29,20 @@ MAXIMUM_STORAGE_CAPACITY = 10000 # in MB; max storage can be exceeded, just an i
 IMAGES_PER_PAGE = 24
 LATEST_IMAGES_AMOUNT = 32
 
-STATIC_DIR = "./static"
-DATA_DIR = "./data"
+STATIC_DIR = ".\\static"
+DATA_DIR = ".\\data"
 IMG_DIR = os.path.join(DATA_DIR, "images")
 TEMP_DIR = os.path.join(DATA_DIR, "temperatures")
 LOG_DIR = os.path.join(DATA_DIR, "logs")
 DEVICE_FILE = os.path.join(DATA_DIR, "devices.json")
+DATA_TYPES = { "images": IMG_DIR, "temperatures": TEMP_DIR, "logs": LOG_DIR }
+LAST_SEEN = {}
 
 os.makedirs(IMG_DIR, exist_ok=True)
 os.makedirs(TEMP_DIR, exist_ok=True)
 os.makedirs(LOG_DIR, exist_ok=True)
 
 app = Flask(__name__)
-
-last_seen = {}
 
 
 
@@ -161,15 +161,15 @@ def create_device_if_not_exist(device_id, ip_address = "", display_name = ""):
 
 def set_last_seen_time(device_id):
     now = datetime.now()
-    if device_id not in last_seen:
-        last_seen.update({device_id: now})
+    if device_id not in LAST_SEEN:
+        LAST_SEEN.update({device_id: now})
     else:
-        last_seen[device_id] = now
+        LAST_SEEN[device_id] = now
 
 def get_last_seen_time(device_id):
-    if device_id not in last_seen:
+    if device_id not in LAST_SEEN:
         set_last_seen_time(device_id)
-    return last_seen[device_id]
+    return LAST_SEEN[device_id]
 
 
 def get_device_name(device_id):
@@ -664,10 +664,8 @@ def get_server_version():
 def download_data():
     device_id = request.args.get("device")
     data_type = request.args.get("type")
-    if not data_type:
-        return {"result": ERROR_MISSING_TYPE}, 400
 
-    if data_type not in ["images", "temperatures", "logs", "all"]:
+    if data_type and data_type not in DATA_TYPES:
         return {"result": ERROR_INVALID_TYPE}, 400
 
     now = datetime.now()
@@ -676,19 +674,25 @@ def download_data():
         if device_id not in devices:
             return {"result": ERROR_DEVICE_NOT_FOUND}, 404
         selected_devices = [device_id]
-        zip_name = f"{now.strftime("%Y%m%d_%H%M%S")}_{DOWNLOAD_FILENAME}_{get_device_name(device_id)}_{data_type}.zip"
+        if data_type:
+            zip_name = f"{now.strftime("%Y%m%d_%H%M%S")}_{DOWNLOAD_FILENAME}_{get_device_name(device_id)}_{data_type}.zip"
+        else:
+            zip_name = f"{now.strftime("%Y%m%d_%H%M%S")}_{DOWNLOAD_FILENAME}_{get_device_name(device_id)}.zip"
     else:
         selected_devices = devices.keys()
-        zip_name = f"{now.strftime("%Y%m%d_%H%M%S")}_{DOWNLOAD_FILENAME}_{data_type}.zip"
+        if data_type:
+            zip_name = f"{now.strftime("%Y%m%d_%H%M%S")}_{DOWNLOAD_FILENAME}_{data_type}.zip"
+        else:
+            zip_name = f"{now.strftime("%Y%m%d_%H%M%S")}_{DOWNLOAD_FILENAME}.zip"
 
     z = zipstream.ZipFile(mode='w', compression=zipstream.ZIP_DEFLATED)
 
     for id in selected_devices:
         name = get_device_name(id)
 
-        types_to_include = (["images", "temperatures", "logs"] if data_type == "all" else [data_type])
+        types_to_include = (["images", "temperatures", "logs"] if not data_type else [data_type])
         for type in types_to_include:
-            folder_path = os.path.join("data", type, id)
+            folder_path = os.path.join(DATA_TYPES[type], id)
 
             if not os.path.exists(folder_path):
                 continue
@@ -726,37 +730,43 @@ def upload_settings():
     settings.save(DEVICE_FILE)
     return {"result": "ok"}, 200
 
-# DELETE /api/delete-data?device=
+# DELETE /api/delete-data?device=&type=
 @app.route("/api/delete-data", methods=["DELETE"])
 def delete_data():
     device_id = request.args.get("device")
 
-    global last_seen
-    devices = load_devices()
-    if device_id:
-        if device_id in devices:
-            del devices[device_id]
-        if device_id in last_seen:
-            del last_seen[device_id]
+    data_type = request.args.get("type")
+    if data_type:
+        if data_type not in DATA_TYPES:
+            return {"result": ERROR_INVALID_TYPE}, 400
+        data_paths = [DATA_TYPES[data_type]]
     else:
-        devices = {}
-        last_seen = {}
-    save_devices(devices)
+        data_paths = [IMG_DIR, TEMP_DIR, LOG_DIR]
 
+        global LAST_SEEN
+        devices = load_devices()
+        if device_id:
+            if device_id in devices:
+                del devices[device_id]
+            if device_id in LAST_SEEN:
+                del LAST_SEEN[device_id]
+        else:
+            devices = {}
+            LAST_SEEN = {}
+        save_devices(devices)
+    
     try:
-        for category_path in [IMG_DIR, TEMP_DIR, LOG_DIR]:
+        for category_path in data_paths:
             if not os.path.isdir(category_path):
                 continue
 
             if device_id:
                 path = os.path.join(category_path, device_id)
-                if not os.path.isdir(path):
-                    continue
-                shutil.rmtree(path)
+                if os.path.isdir(path):
+                    shutil.rmtree(path)
             else:
                 for device in os.listdir(category_path):
                     path = os.path.join(category_path, device)
-
                     if os.path.isdir(path):
                         shutil.rmtree(path)
 
