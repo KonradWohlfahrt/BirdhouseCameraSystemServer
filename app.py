@@ -1,12 +1,16 @@
 from flask import Flask, request, jsonify, render_template, send_file, Response
 from datetime import datetime, timedelta
+from io import BytesIO
+from PIL import Image
+import imagehash
 import zipstream
 import requests
 import shutil
 import json
 import os
 
-VERSION = "1.0.0"
+
+VERSION = "1.0.2"
 DOWNLOAD_FILENAME = "BirdhouseCameraSystem"
 
 ERROR_MISSING_DEVICE_ID = "Missing device ID!"
@@ -24,10 +28,12 @@ ERROR_MISSING_ARGUMENTS = "Missing arguments!"
 ERROR_INVALID_FILE_NAME = "Invalid file name!"
 ERROR_MISSING_TYPE = "Missing type!"
 ERROR_INVALID_TYPE = "Invalid type!"
+ERROR_IMAGE_COMPARE_FAILED = "Image comparison failed!"
 
 MAXIMUM_STORAGE_CAPACITY = 10000 # in MB; max storage can be exceeded, just an indicator
 IMAGES_PER_PAGE = 24
 LATEST_IMAGES_AMOUNT = 32
+HASH_THRESHOLD = 3
 
 STATIC_DIR = ".\\static"
 DATA_DIR = ".\\data"
@@ -209,6 +215,36 @@ def get_device_version(device_id):
         return devices[device_id]["version"]
     return 0
 
+def get_latest_device_image(device_id):
+    device_dir = os.path.join(IMG_DIR, device_id)
+
+    if not os.path.exists(device_dir):
+        return None
+
+    files = [
+        os.path.join(device_dir, f)
+        for f in os.listdir(device_dir)
+        if f.lower().endswith(".jpg")
+    ]
+
+    if not files:
+        return None
+
+    return max(files, key=os.path.getmtime)
+
+def is_similar_image(new_image_bytes, previous_image_path):
+    new_img = Image.open(BytesIO(new_image_bytes)).convert("L")
+    new_hash = imagehash.dhash(new_img, hash_size=8)
+
+    old_img = Image.open(previous_image_path).convert("L")
+    old_hash = imagehash.dhash(old_img, hash_size=8)
+
+    difference = new_hash - old_hash
+
+    #print(f"Hash difference: {difference}")
+
+    return difference <= HASH_THRESHOLD
+
 
 
 # --------------------------------------------------
@@ -275,6 +311,15 @@ def device_post_image():
 
     if not request.data:
         return {"result": ERROR_MISSING_DATA}, 400
+    
+    latest_image = get_latest_device_image(device_id)
+    if latest_image:
+        try:
+            if is_similar_image(request.data, latest_image):
+                return {"result": "Ignored similar image!"}, 200
+        except Exception as e:
+            print(f"Image comparison failed: {e}")
+            return {"result": ERROR_IMAGE_COMPARE_FAILED}, 500
 
     device_dir = os.path.join(IMG_DIR, device_id)
     os.makedirs(device_dir, exist_ok=True)

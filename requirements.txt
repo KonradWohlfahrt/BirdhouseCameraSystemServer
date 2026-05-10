@@ -1,5 +1,7 @@
 flask
 requests
+pillow
+imagehash
 zipstream-new
 gunicorn
 gevent
